@@ -1,27 +1,56 @@
+import sys
+
 import numpy as np
 import argparse
+from os import path
 
 # Argomenti
 parser = argparse.ArgumentParser()
-parser.add_argument("--panel", help="Raw panel", default=".")
+parser.add_argument("--panel", help="Pannello in formato 0/1", default=".")
+parser.add_argument("--blocks", help="File contenente i blocchi in input", default=".")
 
 args = parser.parse_args()
 
-H1Blocks = [["---Massimizzazione Siti--------------"]]
 H1_larghezza = []
+H1_altezza = []
 blocks = []
 
 
 def inizio():
-    block = [[5, 6, 7, 16, 17, 18]]
-    block.extend([6, 10])  # inizio e fine blocco
-    block.append('00000')  # sequenza
-    blocks.append(block)
+    if args.panel == '.':
+        sys.exit("Pannello non inserito")
 
-    block2 = [[1, 2, 3, 11, 12, 13]]
-    block2.extend([4, 5])
-    block2.append('10')
-    blocks.append(block2)
+    if args.blocks == '.':
+        sys.exit("Blocchi non inseriti")
+
+    if not path.isfile(args.panel):
+        sys.exit("Pannello non valido")
+
+    if not path.isfile(args.blocks):
+        sys.exit("Blocchi non validi")
+
+
+def read_blocks():
+    f = open(args.blocks, "r")
+    lines = f.readlines()
+
+    if len(lines) == 0:
+        sys.exit("Blocchi non presenti")
+
+    for line in lines:
+        indexs = []
+        block_line = line.split(";")
+        [indexs.append(int(element)) for element in block_line[0].split(",")]
+        [element.strip() for element in block_line]
+        block = [indexs]
+        block.extend([int(block_line[1]), int(block_line[2])])
+        block.append((block_line[3]))
+
+        blocks.append(block)
+
+    print("Input")
+    mat_print(blocks)
+    print("")
 
 
 # creo con tutte le sequenze del blocco una matrice in cui la prima riga è anche l'ultima, così posso vedere tutte
@@ -74,27 +103,25 @@ def larghezza():
         sx_part = ''.join(map(str, seq_sx[ini_bi - 1 - sx_min: ini_bi - 1]))
         dx_part = ''.join(map(str, seq_sx[ini_bi:fin_bi + 1]))
         seq_sx = sx_part + "X" + dx_part
-        H1Blocks.append([indexs_bi, ini_bi - 1 - sx_min, fin_bi, seq_sx])
         H1_larghezza.append([indexs_bi, ini_bi - 1 - sx_min, fin_bi, seq_sx])
 
         seq_dx = aplo_mat[0]
         sx_part = ''.join(map(str, seq_dx[ini_bi: fin_bi + 1]))
         dx_part = ''.join(map(str, seq_dx[fin_bi + 2: fin_bi + 2 + dx_min]))
         seq_dx = sx_part + "X" + dx_part
-        H1Blocks.append([indexs_bi, ini_bi, fin_bi + 1 + dx_min, seq_dx])
         H1_larghezza.append([indexs_bi, ini_bi, fin_bi + 1 + dx_min, seq_dx])
-        H1Blocks.append(["-------------------------------------"])
 
 
 # creo una matrice in cui la prima riga del blocco è la prima e l'ultima, le sequenze sono limitate all'intervallo
 # del blocco, per ogni sequenza se div_sx + div_dx = 0 allora posso essere aggiunte (aggiunta la seq prima della
 # riga in cui sono zero)
 def altezza():
-    H1Blocks.append(["---Massimizzazione Aplotipi----------"])
-    for bi in blocks:
+    blocks_in = blocks + H1_larghezza
+    for bi in blocks_in:
         indexs_bi = bi[0].copy()
         ini_bi = bi[1]
         fin_bi = bi[2]
+        seq_bi = bi[3]
 
         X = read_matrix(args.panel)
 
@@ -104,6 +131,13 @@ def altezza():
         for sito in range(fin_bi + 1 - ini_bi):
             # suppongo sito come sito di errore, quindi ammetto la differenza di caratteri
             aplo_add = []
+            h1 = False
+
+            try:
+                sito = seq_bi.index("X")
+                h1 = True
+            except ValueError:
+                sito = sito
 
             for element in range(len(X)):
                 if element not in indexs_bi:
@@ -124,62 +158,22 @@ def altezza():
                     if sx_div + dx_div == 0:
                         aplo_add.append(element)
 
-            if len(aplo_add) != 0:
+            if len(aplo_add) != 0 and h1 == False:
                 seq = aplo_mat[0]
                 sx_part = ''.join(map(str, seq[:sito]))
                 dx_part = ''.join(map(str, seq[sito + 1:]))
                 seq = sx_part + "X" + dx_part
                 h1_indexs = indexs_bi + aplo_add
-                H1Blocks.append([h1_indexs, ini_bi, fin_bi, seq])
+                H1_altezza.append([h1_indexs, ini_bi, fin_bi, seq])
 
-        H1Blocks.append(["-------------------------------------"])
-
-    # controllo se posso aggiungere aplotipi alla massimizzazione di siti
-    if len(H1_larghezza) > 0:
-        H1Blocks.append(["---Massimizzazione Siti e Aplotipi---"])
-        for bi in H1_larghezza:
-            indexs_bi = bi[0].copy()
-            ini_bi = bi[1]
-            fin_bi = bi[2]
-            seq_bi = bi[3]
-
-            # setto il sito di diversità
-            sito = seq_bi.index("X")
-            aplo_add = []
-
-            # prendo la sequenza di riferimento
-            seq_rif = X[indexs_bi[0]][ini_bi:fin_bi + 1]
-
-            for element in range(len(X)):
-                if element not in indexs_bi:
-                    # creo la matrice seq-blocco, seq-esame
-                    aplo_mat = np.empty((2, fin_bi + 1 - ini_bi)).astype('int32')
-
-                    aplo_mat[0, :] = seq_rif
-                    aplo_mat[1, :] = X[element][ini_bi:fin_bi + 1]
-                    rev_aplo_mat = np.fliplr(aplo_mat)
-
-                    order_mat, divergence_mat = pbwt(aplo_mat)
-                    rev_order_mat, rev_div_mat = pbwt(rev_aplo_mat)
-
-                    # prendo sempre le divergenze nella riga 1 poichè sono rispetto alla precedente
-                    sx_div = divergence_mat[1, sito]
-                    dx_div = rev_div_mat[1, (fin_bi - ini_bi) - sito]
-
-                    if sx_div + dx_div == 0:
-                        aplo_add.append(element)
-
-            if len(aplo_add) != 0:
-                seq = aplo_mat[0]
-                sx_part = ''.join(map(str, seq[:sito]))
-                dx_part = ''.join(map(str, seq[sito + 1:]))
-                seq = sx_part + "X" + dx_part
+            if h1:
                 h1_indexs = indexs_bi + aplo_add
-                H1Blocks.append([h1_indexs, ini_bi, fin_bi, seq])
+                H1_altezza.append([h1_indexs, ini_bi, fin_bi, seq_bi])
+                # H1_larghezza.remove(bi)
+                break
 
-        H1Blocks.append(["-------------------------------------"])
-
-    mat_print(H1Blocks)
+    print("Risultati: ")
+    mat_print(H1_altezza)
 
 
 def read_matrix(path):
@@ -267,11 +261,8 @@ def index_at(elemento, posizione, matrice_ordinamento):
             return aplo
 
 
-def index_from(elemento, list_index):
-    return list_index[elemento]
-
-
 if __name__ == '__main__':
     inizio()
+    read_blocks()
     larghezza()
     altezza()
