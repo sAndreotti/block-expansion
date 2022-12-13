@@ -83,20 +83,26 @@ def larghezza():
 
         for element in range(len(aplo_mat)):
             if element != 0:
-                # prendo la divergenza verso dx (numero caratteri diversi)
-                order_element = index_at(element, ini_bi - 1, order_mat)
-                # prendo la divergenza del mio indice al sito inizio-1
-                # trasformo la divergenza in "n caratteri uguali"
-                sx_div = ini_bi - 1 - divergence_mat[order_element, ini_bi - 1]
-                # se il n caratteri uguali è < di min
-                if sx_div < sx_min:
-                    sx_min = sx_div
+                if ini_bi-1 != 0:
+                    # prendo la divergenza verso dx (numero caratteri diversi)
+                    order_element = index_at(element, ini_bi - 1, order_mat)
+                    # prendo la divergenza del mio indice al sito inizio-1
+                    # trasformo la divergenza in "n caratteri uguali"
+                    sx_div = ini_bi - 1 - divergence_mat[order_element, ini_bi - 1]
+                    # se il n caratteri uguali è < di min
+                    if sx_div < sx_min:
+                        sx_min = sx_div
+                else:
+                    sx_min = 0
 
-                # faccio la stessa cosa a sx
-                rev_order_element = index_at(element, fin_bi + 1, rev_order_mat)
-                dx_div = fin_bi + 1 - rev_div_mat[rev_order_element, fin_bi + 1]
-                if dx_div < dx_min:
-                    dx_min = dx_div
+                if fin_bi+1 != len(aplo_mat[0])+1:
+                    # faccio la stessa cosa a sx
+                    rev_order_element = index_at(element, fin_bi + 1, rev_order_mat)
+                    dx_div = fin_bi + 1 - rev_div_mat[rev_order_element, fin_bi + 1]
+                    if dx_div < dx_min:
+                        dx_min = dx_div
+                else:
+                    dx_min = 0
 
         # ho calcolato l'aumento della larghezza
         seq_sx = aplo_mat[0]
