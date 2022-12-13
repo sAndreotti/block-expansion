@@ -1,0 +1,13 @@
+Espansione blocchi:
+
+L'algoritmo prende in input un pannello di aplotipi e una lista di blocchi H0.
+
+La massimizzazione dei siti è calcolata usando la divergenza nei siti di inizio-1 e di fine+1, in questo caso le colonne
+con la distanza di hamming saranno ai bordi del blocco, vengono creati sempre 2 blocchi H1
+(se il blocco non è all'inizio o alla fine del pannello).
+
+La massimizzazione di aplotipi è calcolata facendo la pBWT tra il primo aplotipo del blocco (preso come reference) e un
+aplotipo del pannello non nel blocco. Questa operazione è ripetuta per tutti gli aplotipi, calcolzando la divergenza in
+ogni sito ottengo un numero di blocchi H1 di max la lunghezza dell'aplotipo.
+
+La massimizzazione avviene anche per i blocchi H1 calcolati dalla massimizzazione dei siti.
