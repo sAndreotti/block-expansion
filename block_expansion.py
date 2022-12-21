@@ -1,5 +1,4 @@
 import sys
-
 import numpy as np
 import argparse
 from os import path
@@ -14,7 +13,6 @@ args = parser.parse_args()
 H1_larghezza = []
 H1_altezza = []
 blocks = []
-
 
 def inizio():
     if args.panel == '.':
