@@ -14,6 +14,7 @@ H1_larghezza = []
 H1_altezza = []
 blocks = []
 
+
 def inizio():
     if args.panel == '.':
         sys.exit("Pannello non inserito")
@@ -46,10 +47,6 @@ def read_blocks():
 
         blocks.append(block)
 
-    print("Input")
-    mat_print(blocks)
-    print("")
-
 
 # creo con tutte le sequenze del blocco una matrice in cui la prima riga è anche l'ultima, così posso vedere tutte
 # le divergenze di ogni riga con quella sopra, mi basta fare un for per ogni riga, guardo la divergenza a dx e a sx
@@ -60,18 +57,17 @@ def larghezza():
         ini_bi = bi[1]
         fin_bi = bi[2]
 
-        X = read_matrix(args.panel)
-        aplo_mat = np.empty((len(indexs_bi) + 1, len(X[0]))).astype('int32')
+        x = np.loadtxt(args.panel, delimiter="\t", dtype=int)
+        aplo_mat = np.empty((len(indexs_bi) + 1, len(x[0])), dtype=int)
         ind_mat = 0
-        for aplo in range(len(X)):
+        for aplo in range(len(x)):
             if aplo in indexs_bi:
-                aplo_mat[ind_mat, :] = X[aplo]
+                aplo_mat[ind_mat, :] = x[aplo]
                 ind_mat = ind_mat + 1
         aplo_mat[ind_mat, :] = aplo_mat[0, :]
         rev_aplo_mat = np.fliplr(aplo_mat)
 
         # Ho creato la matrice
-        # mat_print(aplo_mat)
 
         # calcolo indici e divergenze
         order_mat, divergence_mat = pbwt(aplo_mat)
@@ -81,7 +77,7 @@ def larghezza():
 
         for element in range(len(aplo_mat)):
             if element != 0:
-                if ini_bi-1 != 0:
+                if ini_bi - 1 != 0:
                     # prendo la divergenza verso dx (numero caratteri diversi)
                     order_element = index_at(element, ini_bi - 1, order_mat)
                     # prendo la divergenza del mio indice al sito inizio-1
@@ -93,7 +89,7 @@ def larghezza():
                 else:
                     sx_min = 0
 
-                if fin_bi+1 != len(aplo_mat[0])+1:
+                if fin_bi + 1 != len(aplo_mat[0]) + 1:
                     # faccio la stessa cosa a sx
                     rev_order_element = index_at(element, fin_bi + 1, rev_order_mat)
                     dx_div = fin_bi + 1 - rev_div_mat[rev_order_element, fin_bi + 1]
@@ -106,14 +102,20 @@ def larghezza():
         seq_sx = aplo_mat[0]
         sx_part = ''.join(map(str, seq_sx[ini_bi - 1 - sx_min: ini_bi - 1]))
         dx_part = ''.join(map(str, seq_sx[ini_bi:fin_bi + 1]))
-        seq_sx = sx_part + "X" + dx_part
+        seq_sx = sx_part + "x" + dx_part
         H1_larghezza.append([indexs_bi, ini_bi - 1 - sx_min, fin_bi, seq_sx])
 
         seq_dx = aplo_mat[0]
         sx_part = ''.join(map(str, seq_dx[ini_bi: fin_bi + 1]))
         dx_part = ''.join(map(str, seq_dx[fin_bi + 2: fin_bi + 2 + dx_min]))
-        seq_dx = sx_part + "X" + dx_part
+        seq_dx = sx_part + "x" + dx_part
         H1_larghezza.append([indexs_bi, ini_bi, fin_bi + 1 + dx_min, seq_dx])
+
+    print("Espansione Siti: ------------------------")
+    print()
+    mat_print(H1_larghezza)
+    print()
+    print("-----------------------------------------")
 
 
 # creo una matrice in cui la prima riga del blocco è la prima e l'ultima, le sequenze sono limitate all'intervallo
@@ -127,7 +129,7 @@ def altezza():
         fin_bi = bi[2]
         seq_bi = bi[3]
 
-        X = read_matrix(args.panel)
+        X = np.loadtxt(args.panel, delimiter="\t", dtype=int)
 
         # prendo la sequenza di riferimento
         seq_rif = X[indexs_bi[0]][ini_bi:fin_bi + 1]
@@ -176,14 +178,11 @@ def altezza():
                 # H1_larghezza.remove(bi)
                 break
 
-    print("Risultati: ")
+    print("Espansione Aplotipi: -----------------------")
+    print()
     mat_print(H1_altezza)
-
-
-def read_matrix(path):
-    X = np.loadtxt(path, dtype='i', delimiter='\t')
-    return X
-
+    print()
+    print("--------------------------------------------")
 
 def mat_print(mat):
     print('\n'.join(['\t'.join([str(cell) for cell in row]) for row in mat]))
