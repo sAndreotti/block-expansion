@@ -77,7 +77,7 @@ def larghezza():
 
         for element in range(len(aplo_mat)):
             if element != 0:
-                if ini_bi - 1 != 0:
+                if ini_bi - 1 > 0:
                     # prendo la divergenza verso dx (numero caratteri diversi)
                     order_element = index_at(element, ini_bi - 1, order_mat)
                     # prendo la divergenza del mio indice al sito inizio-1
@@ -89,7 +89,7 @@ def larghezza():
                 else:
                     sx_min = 0
 
-                if fin_bi + 1 != len(aplo_mat[0]) + 1:
+                if fin_bi + 1 < len(aplo_mat[0]):
                     # faccio la stessa cosa a sx
                     rev_order_element = index_at(element, fin_bi + 1, rev_order_mat)
                     dx_div = fin_bi + 1 - rev_div_mat[rev_order_element, fin_bi + 1]
@@ -100,16 +100,30 @@ def larghezza():
 
         # ho calcolato l'aumento della larghezza
         seq_sx = aplo_mat[0]
-        sx_part = ''.join(map(str, seq_sx[ini_bi - 1 - sx_min: ini_bi - 1]))
-        dx_part = ''.join(map(str, seq_sx[ini_bi:fin_bi + 1]))
-        seq_sx = sx_part + "x" + dx_part
-        H1_larghezza.append([indexs_bi, ini_bi - 1 - sx_min, fin_bi, seq_sx])
+        if ini_bi == 0:
+            seq_sx = ''.join(map(str, seq_sx[ini_bi:fin_bi + 1]))
+        else:
+            sx_part = ''.join(map(str, seq_sx[ini_bi - 1 - sx_min: ini_bi - 1]))
+            dx_part = ''.join(map(str, seq_sx[ini_bi:fin_bi + 1]))
+            seq_sx = sx_part + "x" + dx_part
+        if fin_bi != len(aplo_mat[0]):
+            if ini_bi - 1 - sx_min < 0:
+                H1_larghezza.append([indexs_bi, 0, fin_bi, seq_sx])
+            else:
+                H1_larghezza.append([indexs_bi, ini_bi - 1 - sx_min, fin_bi, seq_sx])
 
         seq_dx = aplo_mat[0]
-        sx_part = ''.join(map(str, seq_dx[ini_bi: fin_bi + 1]))
-        dx_part = ''.join(map(str, seq_dx[fin_bi + 2: fin_bi + 2 + dx_min]))
-        seq_dx = sx_part + "x" + dx_part
-        H1_larghezza.append([indexs_bi, ini_bi, fin_bi + 1 + dx_min, seq_dx])
+        if fin_bi == len(aplo_mat[0]):
+            seq_dx = ''.join(map(str, seq_dx[ini_bi: fin_bi + 1]))
+        else:
+            sx_part = ''.join(map(str, seq_dx[ini_bi: fin_bi + 1]))
+            dx_part = ''.join(map(str, seq_dx[fin_bi + 2: fin_bi + 2 + dx_min]))
+            seq_dx = sx_part + "x" + dx_part
+        if ini_bi != 0:
+            if fin_bi + 1 + dx_min > len(aplo_mat[0]):
+                H1_larghezza.append([indexs_bi, ini_bi, len(aplo_mat[0]), seq_dx])
+            else:
+                H1_larghezza.append([indexs_bi, ini_bi, fin_bi + 1 + dx_min, seq_dx])
 
     print("Espansione Siti: ------------------------")
     print()
@@ -148,10 +162,18 @@ def altezza():
             for element in range(len(X)):
                 if element not in indexs_bi:
                     # creo la matrice seq-blocco, seq-esame
-                    aplo_mat = np.empty((2, fin_bi + 1 - ini_bi)).astype('int32')
+                    aplo_mat = np.empty((2, fin_bi + 1 - ini_bi), dtype=int)
 
-                    aplo_mat[0, :] = seq_rif
-                    aplo_mat[1, :] = X[element][ini_bi:fin_bi + 1]
+                    try:
+                        aplo_mat[0, :] = seq_rif
+                    except ValueError:
+                        print(f"Errore riferimento: \n{seq_rif}, {ini_bi}, {fin_bi}")
+
+                    try:
+                        aplo_mat[1, :] = X[element][ini_bi:fin_bi + 1]
+                    except ValueError:
+                        print(f"Errore confronto: \n{X[element][ini_bi:fin_bi + 1]}, {ini_bi}, {fin_bi}")
+
                     rev_aplo_mat = np.fliplr(aplo_mat)
 
                     order_mat, divergence_mat = pbwt(aplo_mat)
@@ -184,8 +206,9 @@ def altezza():
     print()
     print("--------------------------------------------")
 
+
 def mat_print(mat):
-    print('\n'.join(['\t'.join([str(cell) for cell in row]) for row in mat]))
+    print('\n'.join(['\t'.join([str(cell) + ";" for cell in row]) for row in mat]))
 
 
 def pbwt(matrice):
@@ -265,6 +288,26 @@ def index_at(elemento, posizione, matrice_ordinamento):
 
 
 if __name__ == '__main__':
+    # x = np.loadtxt(args.panel, delimiter="\t", dtype=int)
+    # order_mat, divergence_mat = pbwt(x)
+    # rev_order_mat, rev_div_mat = pbwt(np.flip(x))
+
+    # print("Order Mat 1")
+    # mat_print(order_mat)
+    # print("")
+    # print("")
+    # print("Divergence Mat 1")
+    # mat_print(divergence_mat)
+    # print("")
+    # print("")
+    # print("")
+    # print("Order Mat Rev")
+    # mat_print(rev_order_mat)
+    # print("")
+    # print("")
+    # print("Divergence Mat Rev")
+    # mat_print(rev_div_mat)
+
     inizio()
     read_blocks()
     larghezza()

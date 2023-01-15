@@ -89,7 +89,6 @@ def bmtab():
         if n_line[-2] == '\t' and n_line[-1] != '0' and n_line[-1] != '1':
             del n_line[-2]
 
-        print(n_line)
         w_lines.append(''.join(map(str, n_line)))
         n_line = []
 
@@ -104,5 +103,5 @@ def bmtab():
 
 
 if __name__ == '__main__':
-    parser()
+    # parser()
     bmtab()
