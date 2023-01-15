@@ -47,6 +47,15 @@ def read_blocks():
 
         blocks.append(block)
 
+    for element in blocks:
+
+        if element[3].count("Y") > 0:
+            el = element[3].strip().replace("Y", "X")
+            element[3] = el
+        else:
+            el = element[3].strip().replace("X", "Y")
+            element[3] = el
+
 
 # creo con tutte le sequenze del blocco una matrice in cui la prima riga è anche l'ultima, così posso vedere tutte
 # le divergenze di ogni riga con quella sopra, mi basta fare un for per ogni riga, guardo la divergenza a dx e a sx
@@ -56,6 +65,7 @@ def larghezza():
         indexs_bi = bi[0].copy()
         ini_bi = bi[1]
         fin_bi = bi[2]
+        seq_bi = bi[3].strip()
 
         x = np.loadtxt(args.panel, delimiter="\t", dtype=int)
         aplo_mat = np.empty((len(indexs_bi) + 1, len(x[0])), dtype=int)
@@ -104,8 +114,9 @@ def larghezza():
             seq_sx = ''.join(map(str, seq_sx[ini_bi:fin_bi + 1]))
         else:
             sx_part = ''.join(map(str, seq_sx[ini_bi - 1 - sx_min: ini_bi - 1]))
-            dx_part = ''.join(map(str, seq_sx[ini_bi:fin_bi + 1]))
-            seq_sx = sx_part + "x" + dx_part
+            dx_part = ''.join(
+                map(str, seq_bi))  ########################################################################
+            seq_sx = sx_part + "X" + dx_part
         if fin_bi != len(aplo_mat[0]):
             if ini_bi - 1 - sx_min < 0:
                 H1_larghezza.append([indexs_bi, 0, fin_bi, seq_sx])
@@ -116,9 +127,10 @@ def larghezza():
         if fin_bi == len(aplo_mat[0]):
             seq_dx = ''.join(map(str, seq_dx[ini_bi: fin_bi + 1]))
         else:
-            sx_part = ''.join(map(str, seq_dx[ini_bi: fin_bi + 1]))
+            sx_part = ''.join(
+                map(str, seq_bi))  ########################################################################
             dx_part = ''.join(map(str, seq_dx[fin_bi + 2: fin_bi + 2 + dx_min]))
-            seq_dx = sx_part + "x" + dx_part
+            seq_dx = sx_part + "X" + dx_part
         if ini_bi != 0:
             if fin_bi + 1 + dx_min > len(aplo_mat[0]):
                 H1_larghezza.append([indexs_bi, ini_bi, len(aplo_mat[0]), seq_dx])
@@ -127,7 +139,7 @@ def larghezza():
 
     print("Espansione Siti: ------------------------")
     print()
-    mat_print(H1_larghezza)
+    mat_print(hn_sost(H1_larghezza))
     print()
     print("-----------------------------------------")
 
@@ -136,12 +148,20 @@ def larghezza():
 # del blocco, per ogni sequenza se div_sx + div_dx = 0 allora posso essere aggiunte (aggiunta la seq prima della
 # riga in cui sono zero)
 def altezza():
-    blocks_in = blocks + H1_larghezza
+    blocks_in = hn_sost(blocks) + H1_larghezza
     for bi in blocks_in:
         indexs_bi = bi[0].copy()
         ini_bi = bi[1]
         fin_bi = bi[2]
-        seq_bi = bi[3]
+        seq_bi = bi[3].strip()
+
+        try:
+            hn = seq_bi.count("Y")
+        except ValueError:
+            hn = 0
+        print(seq_bi)
+        print(hn)
+        print()
 
         X = np.loadtxt(args.panel, delimiter="\t", dtype=int)
 
@@ -183,7 +203,7 @@ def altezza():
                     sx_div = divergence_mat[1, sito]
                     dx_div = rev_div_mat[1, (fin_bi - ini_bi) - sito]
 
-                    if sx_div + dx_div == 0:
+                    if sx_div + dx_div == 0 + hn:
                         aplo_add.append(element)
 
             if len(aplo_add) != 0 and h1 == False:
@@ -191,6 +211,12 @@ def altezza():
                 sx_part = ''.join(map(str, seq[:sito]))
                 dx_part = ''.join(map(str, seq[sito + 1:]))
                 seq = sx_part + "X" + dx_part
+
+                if hn > 0:
+                    for i in range(hn):
+                        ind = seq_bi.index("Y")
+                        seq = seq[:ind] + "X" + seq[ind + 1:]
+
                 h1_indexs = indexs_bi + aplo_add
                 H1_altezza.append([h1_indexs, ini_bi, fin_bi, seq])
 
@@ -202,6 +228,7 @@ def altezza():
 
     print("Espansione Aplotipi: -----------------------")
     print()
+    # hn_sost(H1_altezza)
     mat_print(H1_altezza)
     print()
     print("--------------------------------------------")
@@ -285,6 +312,19 @@ def index_at(elemento, posizione, matrice_ordinamento):
     for aplo in matrice_ordinamento[:, posizione]:
         if matrice_ordinamento[aplo, posizione] == matrice_ordinamento[elemento, posizione]:
             return aplo
+
+
+def hn_sost(format_list):
+    for element in format_list:
+
+        if element[3].count("Y") > 0:
+            el = element[3].strip().replace("Y", "X")
+            element[3] = el
+        else:
+            el = element[3].strip().replace("X", "Y")
+            element[3] = el
+
+    return format_list
 
 
 if __name__ == '__main__':
