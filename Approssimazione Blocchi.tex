@@ -1,0 +1,180 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage[italian]{babel}
+\usepackage{layout}
+\usepackage[marginparwidth=50pt]{geometry}
+
+\graphicspath{ {./images/} }
+
+\algnewcommand\And{\textbf{ and }}
+\algnewcommand\Or{\textbf{ or }}
+\algnewcommand\Next{\textbf{next }}
+\algnewcommand\Xor{\textbf{xor }}
+\algnewcommand\Make{\textbf{Make }}
+\algnewcommand\Alt{\textbf{Alt }}
+
+\title{Approssimazione Blocchi}
+\author{Andreotti S. - 851596}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Problema}
+Dato un set X di M sequenze di aplotipi xi, i=0,...,(M-1) di lungehzza pari N su alfabeto {0,1} e una lista di blocchi H0 del set, si vuole produrre in output l'insieme di tutti i blocchi H1 derivati dai blocchi in input.
+
+\section{Definizioni}
+
+\subsection{Blocco H0}
+Si definisce un blocco H0 come una quadrupla:
+\begin{center}
+    (K,i,j, A), con K $\subseteq$ {0,1,...,M-1}, \textbar K\textbar $\geq$ 2, 0 $\leq$ i $<$ j $<$ N, A sequenza del blocco
+\end{center}
+Tali che:
+\begin{itemize}
+    \item[-] Tutte le sequenze sono uguali: s[i,j] = t[i,j], $\forall$ s,t $\in$ S$_{|K}$
+    \item[-] Il blocco è massimale a sinistra: i=0 $\vee$ s[i-1] $\neq$ t[i-1], per alcuni s,t $\in$ S$_{|K}$
+    \item[-] Il blocco è massimale a destra: j = N-1 $\vee$ s[j+1] $\neq$ t[j+1], per alcuni s,t $\in$ S$_{|K}$
+    \item[-] Il blocco massimizza le righe: K' $\subseteq$ {0,1,...,M-1}, K $\subset$ K' tale che s[i,j] = t[i,j], $\forall$ s,t $\in$ S$_{|K'}$
+\end{itemize}
+
+\subsection{Blocco Hn}
+Si definisce un generico blocco Hn su un pannello di aplotipi X, un subset S di aplotipi di X nell'intervallo [i,j] tale che:
+
+\begin{itemize}
+    \item[-] $\forall$ x, x' di aplotipi in S, allora x[i,j] e x'[i,j] hanno distanza di Hamming minore o uguale a n
+    \item[-] $\exists$ x, x' $\in$ S, tali che x[i,j+1] e x'[i,j+1] hanno una distanza di Hamming maggiore di n
+    \item[-] $\exists$ x, x' $\in$ S, tali che x[i-1,j] e x'[i-1,j] hanno una distanza di Hamming maggiore di n
+    \item[-] $\not \exists$ un aplotipo y $\in$ X $\setminus$ \{S\}, per cui la distanza di Hamming tra y[i,j] e x[i,j] $\in$ S, sia minore o uguale a n
+\end{itemize}
+
+\section{Implementazione}
+
+\subsection{Input e Output}
+L'algoritmo prende in input un pannello di aplotipi e una lista di blocchi di aplotipi, restituisce in output tutti i blocchi con distanza di hamming 1 derivati dalla massimizzazione di siti e aplotipi dei blocchi in input
+
+\subsection{Descrizione}
+L'algoritmo è diviso in 2 parti: nella prima parte si calcola la massimizzazione dei siti dei blocchi in input mentre nella seconda viene massimizzato il numero di aplotipi nei blocchi di input e nei blocchi calcolati nella prima parte. Questo algoritmo si basa sulla pBWT bi-direzionale per calcolare velocemente le matrici di indici e divergenza che vengono usate nei confronti
+
+\subsection{Massimizzazione Siti}
+Per il calcolo della massimizzazione dei siti l'algoritmo crea una matrice con solo gli aplotipi del blocco presi con la loro larghezza totale, su questa matrice viene eseguita la pBWT bi-direzionale ottenendo le matrici di indici e divergenza per entrambe le direzioni. Per ogni aplotipo della matrice calcolata si verifica la divergenza nel sito precedente all'inizio del blocco e nel sito successivo alla fine, in questo modo si assume che nei due siti ci siano caratteri differenti. Una volta calcolata la posizione dell'aplotipo all'ordinamento del sito con la matrice degli indici (riferimento ad algoritmo supporto) si legge la divergenza e la si confronta con il minimo memorizzato, se è  minore allora la divergenza letta è la migliore lunghezza calcolata fino ad ora per l'espansione dei siti. Letti tutti i siti e calcolati i massimi intervalli possibili, cioè la divergenza minore, vengono creati i due blocchi H1 nei quali l'intervallo sarà aumentato e le sequenze presenteranno una x nella posizione di diversità. Per ogni blocco vengono calcolati 2 blocchi H1 tranne nel caso in cui un blocco sia ai limiti della larghezza del pannello
+
+\begin{algorithm}
+\caption{Massimizzazione Siti}\label{alg:cap}
+\begin{algorithmic}
+    \For{$bi \in blocchi\_input$}
+        \State $aplo\_matrice = []$
+        \For{$aplotipo \in X$}
+            \If {$aplotitpo \not \in indexs\_bi$}
+                \State $aplo\_matrice.add(aplotipo)$
+            \EndIf
+        \EndFor
+        \State $aplo\_matrice.add(aplotipo[indexs\_bi[0])$
+        \State $reverse\_aplo\_matrice = flip(aplo\_matrice)$
+        
+        \State $order\_mat, divergence\_mat \gets pbwt(aplo\_matrice)$
+        \State $rev\_order\_mat, rev\_divergence\_mat \gets pbwt(reverse\_aplo\_matrice)$
+        \State $sx\_min, dx\_min \gets len(X[0])$
+        
+        \For{$element \in aplo\_matrice$}
+            \If{$element != 0$}
+                \State $order\_element = index\_at(element, ini\_bi-1, order\_matrice)$
+                \State $sx\_div = ini\_bi-1 - divergence\_mat[order\_element, ini\_bi-1]$
+                \If{$sx\_div < sx\_min$}
+                    \State $sx\_min = sx\_div$
+                \EndIf
+                
+                \State $rev\_order\_element = index\_at(element, fin\_bi+1, rev\_order\_mat)$
+                \State $dx\_div = fin\_bi+1 - rev\_divergence\_mat[rev\_order\_element, fin\_bi+1]$
+                \If{$dx\_div < dx\_min$}
+                    \State $dx\_min = dx\_div$
+                \EndIf
+            \EndIf
+        \EndFor
+        
+        \State $seq\_sx = aplo\_mat[0]$
+        \State $seq\_sx = seq\_sx[ini\_bi-1-sx: ini\_bi-1] + "X" + seq\_sx[ini\_bi: fin\_bi+1]$
+        \State $new H1(indexs\_bi, ini\_bi-1-sx\_min, fin\_bi, seq\_sx)$
+        \State $H1\_larghezza.append(H1)$
+        
+        \State $seq\_dx = aplo\_mat[0]$
+        \State $seq\_dx = seq\_dx[ini\_bi: fin\_bi+1] + "X" + seq\_dx[fin\_bi+2: fin\_bi+2+dx\_min]$
+        \State $new H1(indexs\_bi, ini\_bi, fin\_bi+1+dx\_min, seq\_dx)$
+        \State $H1\_larghezza.append(H1)$
+        
+    \EndFor
+    
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Massimizzazione Aplotipi}
+Il calcolo della massimizzazione degli aplotipi avviene sia per i blocchi in input sia per i blocchi calcolati alla massimizzazione dei siti. La massimizzazione per i blocchi in input avviene scorrendo tutti i siti appartenenti al blocco, per ogni sito creo una matrice tra la seqeunza di riferimento che è il primo aplotipo del blocco e un elemento del pannello che non appartiene alla matrice, entrambi presi nell'intervallo del blocco. Viene eseguita la pBWT sulla matrice a 2 righe, presa la seconda riga delle due matrici di divergenza (la seconda perchè la pBWT fa la divergenza tra la riga e quella precedente), si sommano le due divergenze, se la loro somma è uguale a 0 vuol dire che l'aplotipo in analisi è compatibile con il blocco ammesso un errore nel sito in esame. Una volta calcolati tutti gli aplotipi in un sito, se ce ne è almeno uno viene creato un blocco H1 corrispondente, nel quale la lista di aplotipi comprenderà quelli del blocco insieme a quelli calcolati e la sequenza presenterà una x nel sito di diversità. Questo calcolo viene Ripetuto per ogni sito del blocco. Per i blocchi H1 calcolati alla massimizzazione dei siti l'algoritmo cerca se nella sequenza è presente una x e se lo è prende come sito di diversità quello della x e calcola la massimizzazione di aplotipi solo in quel sito, se deve aggiungerli modificherà solo il campo degli aplotipi aggiungendo quelli appena calcolati.
+
+\begin{algorithm}
+\caption{Massimizzazione Aplotipi}\label{alg:cap}
+\begin{algorithmic}
+    \For{$bi \in blocchi\_input + H1\_larghezza$}
+        \State $seq\_rif = X[indexs\_bi[0][ini\_bi:fin\_bi+1]]$
+        
+        \For{$sito \in fin\_bi+1 - ini\_bi$}
+            \State $aplo\_add = []$
+            \State $h1 = False$
+            
+            \If{$seq\_bi.index("X") exists$}
+                \State $h1 = True$
+                \State $sito = seq\_bi.index("X")$
+            \EndIf
+            
+            \For{$element in X$}
+                \If{$element \not \in indexs\_bi$}
+                    \State $aplo\_mat = [ ]$
+                    \State $aplo\_mat[0, :] = seq\_rif$
+                    \State $aplo\_mat[1, :] = X[element][ini\_bi, fin\_bi+1]$
+                    \State $rev\_aplo\_mat = flip(aplo\_mat)$
+                    
+                    \State $order\_mat, divergence\_mat = pbwt(aplo\_mat)$
+                    \State $rev\_order\_mat, rev\_divergence\_mat = pbwt(rev\_aplo\_mat)$
+                    
+                    \State $sx\_div = divergence\_mat[1, sito]$
+                    \State $dx\_div = rev\_div\_mat[1, (fin\_bi-ini\_bi) - sito]$
+                    
+                    \If{$sx\_div + dx\_div == 0$}
+                        \State $aplo\_add.append(element)$
+                    \EndIf
+                \EndIf
+            \EndFor
+            
+            \If{$len(aplo\_add) != 0$ \and $h1 == False$}
+                \State $seq = aplo\_mat[0]$
+                \State $seq = seq[:sito] + "X" + seq[sito+1:]$
+                \State $new H1(indexs\_bi + aplo\_add, ini\_bi, fin\_bi, seq)$
+            \EndIf
+            
+            \If{$h1 == True$}
+                \State $new H1(indexs\_bi + aplo\_add, ini\_bi, fin\_bi, seq\_bi)$
+                \State $break$
+            \EndIf
+        \EndFor
+    \EndFor
+    
+\end{algorithmic}
+\end{algorithm}
+
+\section{Notazione}
+
+\begin{itemize}
+    \item bi = blocco H0 i-esimo
+    \item $index_{bi}$ = tutti gli aplotipi del blocco i = bi[0]
+    \item $ini_{bi}$ = sito di inizio blocco i (compreso) = bi[1]
+    \item $fin_{bi}$ = sito di fine blocco i (compreso) = bi[2]
+    \item $seq_{bi}$ = sequenza dell'aplotipo del blocco i (Es: 00100) = bi[3]
+
+\end{itemize}
+
+\end{document}
