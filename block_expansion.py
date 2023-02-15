@@ -274,9 +274,9 @@ def altezza():
 
             if fin_bi + 1 <= len(X[0]):
                 # prendo la sequenza di riferimento
-                seq_rif = X[indexs_bi[0]][ini_bi:fin_bi + 1]
+                seq_rif = X[int(indexs_bi[0])][ini_bi:fin_bi + 1]
             else:
-                seq_rif = X[indexs_bi[0]][ini_bi:]
+                seq_rif = X[int(indexs_bi[0])][ini_bi:]
 
             for sito in range(len(seq_rif)):
                 # suppongo sito come sito di errore, quindi ammetto la differenza di caratteri
