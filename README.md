@@ -1,18 +1,18 @@
-# block-expansion
+# Block-expansion
 Algortimo per l'approssimazione di blocchi di aplotipi mediante la pBWT.
 
-##Esecuzione
-###Dipendenze
+## Esecuzione
+###### Dipendenze
 - python3
 - numpy
 - guppy3 
 - tqdm
 
-###Argomenti
+###### Argomenti
 - --panel <file> specifica il pannello di aplotipi
 - --blocks <file> specifica il file dei blocchi 
 
-###Altro
+## Altro
 il pannello viene preso in formato:
 > 1 1 1 0 0 1 1 0 1 0 1 0 1 1 0  
 > 0 0 1 0 0 0 1 1 0 1 0 1 0 0 0  
@@ -21,4 +21,4 @@ il pannello viene preso in formato:
 
 
 mentre i blocchi nel formato:
-grandezza (start-fine,linea:#sequenza), [indice, indice, ...]
+> grandezza (start-fine,linea:#sequenza), [indice, indice, ...]
