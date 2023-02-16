@@ -13,7 +13,7 @@ Algortimo per l'approssimazione di blocchi di aplotipi mediante la pBWT.
 - --blocks <file> specifica il file dei blocchi 
 
 ###### Esempio esecuzione
-> block-expansion.py --panel <pannello> --blocks <blocchi>
+> block-expansion.py --panel file_pannello --blocks file_blocchi
   
 ## Altro
 il pannello viene preso in formato:
@@ -24,4 +24,15 @@ il pannello viene preso in formato:
 
 
 mentre i blocchi nel formato:
-> grandezza (start-fine,linea:#sequenza), [indice, indice, ...]
+> grandezza (start-fine,indice:#sequenza), [indice, indice, ...]
+  
+Grandezza: grandezza totale del blocco calcolata come 
+>numero aplotpi x (fine-inizio)
+  
+Start: sito di inizio blocco
+  
+Fine: sito di fine blocco
+  
+Sequenza: caratteri di un aplotipo del blocco, in caso il blocco abbia un grado maggiore di 0 i siti nei quali sono presenti variazioni sono contrassegnati da una 'X'
+>'00100' oppure '0X100'
+[Indice, indice, ...]:lista degli indici del blocco
