@@ -12,6 +12,9 @@ Algortimo per l'approssimazione di blocchi di aplotipi mediante la pBWT.
 - --panel <file> specifica il pannello di aplotipi
 - --blocks <file> specifica il file dei blocchi 
 
+###### Esempio esecuzione
+> block-expansion.py --panel <pannello> --blocks <blocchi>
+  
 ## Altro
 il pannello viene preso in formato:
 > 1 1 1 0 0 1 1 0 1 0 1 0 1 1 0  
