@@ -181,10 +181,9 @@ def larghezza():
             x = read_matrix()
             aplo_mat = np.empty((len(indexs_bi) + 1, len(x[0])), dtype=int)
             ind_mat = 0
-            for aplo in range(len(x)):
-                if aplo in indexs_bi:
-                    aplo_mat[ind_mat, :] = x[aplo]
-                    ind_mat = ind_mat + 1
+            for aplo in indexs_bi:
+                aplo_mat[ind_mat, :] = x[int(aplo)]
+                ind_mat = ind_mat + 1
             aplo_mat[ind_mat, :] = aplo_mat[0, :]
             rev_aplo_mat = np.fliplr(aplo_mat)
 
@@ -243,10 +242,11 @@ def larghezza():
 
     print("Espansione Siti: ------------------------")
     print()
-    print(len(H1_larghezza))
+    mat_print(H1_larghezza)
     print()
     print("-----------------------------------------")
     print()
+    print(len(H1_larghezza))
     print(f"Calcolati in {time.time() - start_time}")
     print()
     print("-----------------------------------------")
@@ -328,14 +328,15 @@ def altezza():
                     H1_altezza.append([h1_indexs, ini_bi, fin_bi, seq_bi])
                     break
 
-                pbar.update(1)
+            pbar.update(1)
 
     print("Espansione Aplotipi: -----------------------")
     print()
-    print(len(H1_altezza))
+    mat_print(H1_altezza)
     print()
     print("--------------------------------------------")
     print()
+    print(len(H1_altezza))
     print(f"Calcolati in {time.time() - start_time}")
     print()
     print("--------------------------------------------")
@@ -362,7 +363,7 @@ def parser():
             end = line.index("-")
             inizio = line[start + 1:end]
 
-            start = end
+            start = line.index("-")
             end = line.index(",")
             fine = line[start + 1:end]
 
@@ -385,17 +386,16 @@ def parser():
 
             pbar.update(1)
 
-    print(blocks[0])
+    # mat_print(blocks)
     print(len(blocks))
 
     bm.close()
 
 
 if __name__ == '__main__':
-    inizio()
     print("Parser")
     parser()
-    # read_blocks()
+
     print("Larghezza")
     larghezza()
     print("Altezza")
